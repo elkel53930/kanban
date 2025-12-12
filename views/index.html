@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban Board</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Kanban Board</h1>
+        
+        <!-- Notification Area -->
+        <div id="notification-area"></div>
+        
+        <div class="toolbar">
+            <button id="add-card-btn" class="btn btn-primary">
+                ➕ カードを追加
+            </button>
+            <button id="history-btn" class="btn btn-secondary">
+                📋 履歴
+            </button>
+        </div>
+        
+        <div class="board">
+            <div class="column" id="todo">
+                <h2>Todo</h2>
+                <div class="cards"></div>
+            </div>
+            <div class="column" id="today">
+                <h2>今日やる</h2>
+                <div class="cards"></div>
+            </div>
+            <div class="column" id="in-progress">
+                <h2>実行中</h2>
+                <div class="cards"></div>
+            </div>
+            <div class="column" id="done">
+                <h2>完了</h2>
+                <div class="cards"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Card Modal -->
+    <div id="add-card-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>新しいカードを追加</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="add-card-form">
+                <div class="form-group">
+                    <label for="card-title">タイトル *</label>
+                    <input type="text" id="card-title" name="title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="card-description">説明</label>
+                    <textarea id="card-description" name="description" rows="4" placeholder="Markdownで記述できます"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="card-column">カラム</label>
+                    <select id="card-column" name="column_name">
+                        <option value="todo">Todo</option>
+                        <option value="today">今日やる</option>
+                        <option value="in-progress">実行中</option>
+                        <option value="done">完了</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="card-due-date">期限</label>
+                    <input type="date" id="card-due-date" name="due_date">
+                </div>
+                
+                <div class="form-group">
+                    <label for="card-tags">タグ</label>
+                    <input type="text" id="card-tags" name="tags" placeholder="カンマ区切りで入力 (例: 重要, 急ぎ)">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancel-btn">キャンセル</button>
+                    <button type="submit" class="btn btn-primary">追加</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Card Details Modal -->
+    <div id="card-details-modal" class="modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h3 id="details-title">カード詳細</h3>
+                <button class="modal-close" id="details-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="edit-title">タイトル *</label>
+                    <input type="text" id="edit-title" name="title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-description">説明</label>
+                    <div class="description-container">
+                        <div id="description-display" class="description-display">
+                            <div id="description-rendered" class="markdown-content"></div>
+                        </div>
+                        <div id="description-edit" class="description-edit" style="display: none;">
+                            <textarea id="edit-description" name="description" rows="6" placeholder="Markdownで記述できます"></textarea>
+                        </div>
+                        <div class="description-controls">
+                            <button type="button" class="btn-link" id="edit-description-btn" onclick="toggleDescriptionEdit()">編集</button>
+                            <button type="button" class="btn-link" id="cancel-description-btn" onclick="cancelDescriptionEdit()" style="display:none;">キャンセル</button>
+                            <button type="button" class="btn-link" id="save-description-btn" onclick="saveDescriptionEdit()" style="display:none;">保存</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-column">カラム</label>
+                        <select id="edit-column" name="column_name">
+                            <option value="todo">Todo</option>
+                            <option value="today">今日やる</option>
+                            <option value="in-progress">実行中</option>
+                            <option value="done">完了</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-due-date">期限</label>
+                        <input type="date" id="edit-due-date" name="due_date">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-tags">タグ</label>
+                    <input type="text" id="edit-tags" name="tags" placeholder="カンマ区切りで入力 (例: 重要, 急ぎ)">
+                </div>
+                
+                <div class="comments-section">
+                    <h4>コメント</h4>
+                    <div id="comments-list"></div>
+                    <div class="add-comment">
+                        <textarea id="new-comment" placeholder="新しいコメントを追加..." rows="5"></textarea>
+                        <button type="button" class="btn btn-primary" id="add-comment-btn">コメント追加</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-danger" id="delete-card-btn">削除</button>
+                <button type="button" class="btn btn-secondary" id="details-cancel-btn">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="save-changes-btn">変更を保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="history-modal" class="modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h3>📋 完了カード履歴</h3>
+                <button class="modal-close" id="history-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="history-controls">
+                    <label for="history-date">日付で絞り込み:</label>
+                    <input type="date" id="history-date" />
+                    <button class="btn btn-sm btn-secondary" id="clear-date-btn">全期間表示</button>
+                </div>
+                
+                <div id="history-content">
+                    <div id="history-loading" class="loading" style="display: none;">
+                        読み込み中...
+                    </div>
+                    <div id="history-list"></div>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="history-cancel-btn">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>
