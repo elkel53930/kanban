@@ -816,6 +816,15 @@ document.addEventListener('DOMContentLoaded', () => {
         await executeImport();
     });
     
+    // Today buttons
+    document.getElementById('set-today-add').addEventListener('click', () => {
+        setTodayDate('card-due-date');
+    });
+    
+    document.getElementById('set-today-edit').addEventListener('click', () => {
+        setTodayDate('edit-due-date');
+    });
+    
     // Form submission
     document.getElementById('add-card-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -935,6 +944,20 @@ function closeImportModal() {
     document.getElementById('import-preview').style.display = 'none';
     document.getElementById('import-execute-btn').disabled = true;
     importData = null;
+}
+
+// Today date functionality
+function setTodayDate(inputId) {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
+    
+    const input = document.getElementById(inputId);
+    if (input) {
+        input.value = dateString;
+    }
 }
 
 function showSuccess(message) {

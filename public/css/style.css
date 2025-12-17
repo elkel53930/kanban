@@ -604,6 +604,38 @@ form {
     font-size: 0.8em;
 }
 
+/* Date input group styles */
+.date-input-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.date-input-group input[type="date"] {
+    flex: 1;
+}
+
+.btn-today {
+    background: #17a2b8;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-today:hover {
+    background: #138496;
+    transform: translateY(-1px);
+}
+
+.btn-today:active {
+    transform: translateY(0);
+}
+
 /* Import/Export styles */
 .import-preview {
     margin-top: 15px;
