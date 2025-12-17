@@ -766,6 +766,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    // Export button
+    document.getElementById('export-btn').addEventListener('click', async () => {
+        try {
+            const response = await fetch('/api/export');
+            if (!response.ok) {
+                throw new Error('Failed to export data');
+            }
+            
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `kanban-export-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            showSuccess('データをエクスポートしました');
+        } catch (error) {
+            console.error('Error exporting data:', error);
+            showError('データのエクスポートに失敗しました');
+        }
+    });
+    
+    // Import button
+    document.getElementById('import-btn').addEventListener('click', () => {
+        document.getElementById('import-modal').style.display = 'block';
+    });
+    
+    // Import modal close
+    document.getElementById('import-close').addEventListener('click', () => {
+        closeImportModal();
+    });
+    document.getElementById('import-cancel-btn').addEventListener('click', () => {
+        closeImportModal();
+    });
+    
+    // Import file input
+    document.getElementById('import-file').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            await previewImportFile(file);
+        }
+    });
+    
+    // Import execute button
+    document.getElementById('import-execute-btn').addEventListener('click', async () => {
+        await executeImport();
+    });
+    
     // Form submission
     document.getElementById('add-card-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -786,6 +836,106 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// Import/Export functions
+let importData = null;
+
+async function previewImportFile(file) {
+    try {
+        const text = await file.text();
+        importData = JSON.parse(text);
+        
+        if (!importData || !importData.cards) {
+            throw new Error('Invalid file format');
+        }
+        
+        const preview = document.getElementById('import-preview');
+        const info = document.getElementById('import-info');
+        
+        info.innerHTML = `
+            <p><strong>ファイル名:</strong> ${file.name}</p>
+            <p><strong>カード数:</strong> ${importData.cards.length}</p>
+            <p><strong>エクスポート日時:</strong> ${importData.timestamp ? new Date(importData.timestamp).toLocaleString('ja-JP') : '不明'}</p>
+            <p><strong>バージョン:</strong> ${importData.version || '不明'}</p>
+        `;
+        
+        preview.style.display = 'block';
+        document.getElementById('import-execute-btn').disabled = false;
+        
+    } catch (error) {
+        console.error('Error reading file:', error);
+        showError('ファイルの読み込みに失敗しました。正しいJSONファイルを選択してください。');
+        
+        const preview = document.getElementById('import-preview');
+        preview.style.display = 'none';
+        document.getElementById('import-execute-btn').disabled = true;
+        importData = null;
+    }
+}
+
+async function executeImport() {
+    if (!importData) {
+        showError('インポートするデータがありません');
+        return;
+    }
+    
+    const mode = document.getElementById('import-mode').value;
+    const confirmMessage = mode === 'replace' 
+        ? '既存のデータを全て削除して新しいデータで置き換えます。この操作は元に戻せません。続行しますか？'
+        : `${importData.cards.length}件のカードをインポートします。既存のカードはそのまま保持されます。続行しますか？`;
+    
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/import', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                data: importData,
+                mode: mode
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to import data');
+        }
+        
+        const result = await response.json();
+        
+        let message = `インポートが完了しました。\n`;
+        message += `インポート済み: ${result.imported}件\n`;
+        if (result.skipped > 0) {
+            message += `スキップ: ${result.skipped}件\n`;
+        }
+        if (result.errors && result.errors.length > 0) {
+            message += `エラー: ${result.errors.length}件\n`;
+            message += result.errors.slice(0, 3).join('\n');
+            if (result.errors.length > 3) {
+                message += `\n...他${result.errors.length - 3}件`;
+            }
+        }
+        
+        alert(message);
+        closeImportModal();
+        fetchCards(); // Refresh the display
+        
+    } catch (error) {
+        console.error('Error importing data:', error);
+        showError('データのインポートに失敗しました');
+    }
+}
+
+function closeImportModal() {
+    document.getElementById('import-modal').style.display = 'none';
+    document.getElementById('import-file').value = '';
+    document.getElementById('import-preview').style.display = 'none';
+    document.getElementById('import-execute-btn').disabled = true;
+    importData = null;
+}
 
 function showSuccess(message) {
     console.log('Success:', message);

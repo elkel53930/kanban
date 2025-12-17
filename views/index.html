@@ -20,6 +20,12 @@
             <button id="history-btn" class="btn btn-secondary">
                 📋 履歴
             </button>
+            <button id="export-btn" class="btn btn-success">
+                📤 エクスポート
+            </button>
+            <button id="import-btn" class="btn btn-warning">
+                📥 インポート
+            </button>
         </div>
         
         <div class="board">
@@ -180,6 +186,39 @@
             </div>
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" id="history-cancel-btn">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="import-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📥 データインポート</h3>
+                <button class="modal-close" id="import-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="import-file">JSONファイルを選択:</label>
+                    <input type="file" id="import-file" accept=".json" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="import-mode">インポートモード:</label>
+                    <select id="import-mode">
+                        <option value="merge">マージ（既存データを保持）</option>
+                        <option value="replace">置換（全てのデータを削除して置き換え）</option>
+                    </select>
+                </div>
+                
+                <div class="import-preview" id="import-preview" style="display: none;">
+                    <h4>プレビュー:</h4>
+                    <div id="import-info"></div>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="import-cancel-btn">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="import-execute-btn" disabled>インポート実行</button>
             </div>
         </div>
     </div>

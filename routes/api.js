@@ -183,4 +183,95 @@ router.delete('/comments/:id', async (req, res) => {
     }
 });
 
+// Export/Import endpoints
+
+// GET /api/export - Export all cards and comments as JSON
+router.get('/export', async (req, res) => {
+    try {
+        const cards = await cardModel.getAllCards();
+        const exportData = {
+            version: '1.0',
+            timestamp: new Date().toISOString(),
+            cards: []
+        };
+
+        for (const card of cards) {
+            const comments = await commentModel.getCommentsByCardId(card.id);
+            exportData.cards.push({
+                ...card,
+                comments: comments
+            });
+        }
+
+        res.setHeader('Content-Disposition', `attachment; filename=kanban-export-${new Date().toISOString().split('T')[0]}.json`);
+        res.setHeader('Content-Type', 'application/json');
+        res.json(exportData);
+    } catch (error) {
+        console.error('Error exporting data:', error);
+        res.status(500).json({ error: 'Failed to export data' });
+    }
+});
+
+// POST /api/import - Import cards and comments from JSON
+router.post('/import', async (req, res) => {
+    try {
+        const { data, mode = 'merge' } = req.body;
+
+        if (!data || !data.cards) {
+            return res.status(400).json({ error: 'Invalid import data format' });
+        }
+
+        let importedCount = 0;
+        let skippedCount = 0;
+        const errors = [];
+
+        if (mode === 'replace') {
+            const existingCards = await cardModel.getAllCards();
+            for (const card of existingCards) {
+                await cardModel.deleteCard(card.id);
+            }
+        }
+
+        for (const cardData of data.cards) {
+            try {
+                if (mode === 'merge') {
+                    const existingCard = await cardModel.getCardById(cardData.id);
+                    if (existingCard) {
+                        skippedCount++;
+                        continue;
+                    }
+                }
+
+                const newCard = await cardModel.createCard({
+                    title: cardData.title,
+                    description: cardData.description,
+                    column_name: cardData.column_name,
+                    due_date: cardData.due_date,
+                    tags: cardData.tags || []
+                });
+
+                if (cardData.comments && cardData.comments.length > 0) {
+                    for (const comment of cardData.comments) {
+                        await commentModel.createComment(newCard.id, comment.content);
+                    }
+                }
+
+                importedCount++;
+            } catch (error) {
+                errors.push(`Card "${cardData.title}": ${error.message}`);
+            }
+        }
+
+        res.json({
+            success: true,
+            imported: importedCount,
+            skipped: skippedCount,
+            errors: errors
+        });
+    } catch (error) {
+        console.error('Error importing data:', error);
+        res.status(500).json({ error: 'Failed to import data' });
+    }
+});
+
 module.exports = router;

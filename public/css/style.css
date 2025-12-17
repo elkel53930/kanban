@@ -214,6 +214,24 @@ h1 {
     background: #5a6268;
 }
 
+.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #218838;
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+}
+
 /* Modal */
 .modal {
     display: none;
@@ -584,6 +602,25 @@ form {
 .btn-sm {
     padding: 6px 12px;
     font-size: 0.8em;
+}
+
+/* Import/Export styles */
+.import-preview {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.import-preview h4 {
+    margin-bottom: 10px;
+    color: #495057;
+}
+
+.import-preview p {
+    margin: 5px 0;
+    color: #6c757d;
 }
 
 /* Description editing styles */
