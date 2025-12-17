@@ -43,54 +43,70 @@ function initDatabase() {
 }
 
 function insertSampleData(db, callback) {
-    const insertCard = `
-        INSERT INTO cards (title, description, column_name, due_date) 
-        VALUES (?, ?, ?, ?)
-    `;
-    
-    const insertTag = `INSERT INTO tags (card_id, name) VALUES (?, ?)`;
-    
-    // Sample cards
-    const sampleCards = [
-        {
-            title: 'サンプルタスク1',
-            description: '# タスク説明\n\nこれはサンプルタスクです。',
-            column: 'todo',
-            dueDate: '2025-12-15',
-            tags: ['重要', 'サンプル']
-        },
-        {
-            title: 'サンプルタスク2',
-            description: '## 急ぎのタスク\n\n- 項目1\n- 項目2',
-            column: 'today',
-            dueDate: null,
-            tags: ['急ぎ', '開発']
+    // Check if cards already exist
+    db.get('SELECT COUNT(*) as count FROM cards', (err, row) => {
+        if (err) {
+            console.error('Error checking existing cards:', err);
+            callback();
+            return;
         }
-    ];
-
-    let cardCount = 0;
-    sampleCards.forEach((card, index) => {
-        db.run(insertCard, [card.title, card.description, card.column, card.dueDate], function(err) {
-            if (err) {
-                console.error('Error inserting card:', err);
-                return;
+        
+        // Only insert sample data if no cards exist
+        if (row.count > 0) {
+            console.log('Cards already exist, skipping sample data insertion');
+            callback();
+            return;
+        }
+        
+        const insertCard = `
+            INSERT INTO cards (title, description, column_name, due_date) 
+            VALUES (?, ?, ?, ?)
+        `;
+        
+        const insertTag = `INSERT INTO tags (card_id, name) VALUES (?, ?)`;
+        
+        // Sample cards
+        const sampleCards = [
+            {
+                title: 'サンプルタスク1',
+                description: '# タスク説明\n\nこれはサンプルタスクです。',
+                column: 'todo',
+                dueDate: '2025-12-15',
+                tags: ['重要', 'サンプル']
+            },
+            {
+                title: 'サンプルタスク2',
+                description: '## 急ぎのタスク\n\n- 項目1\n- 項目2',
+                column: 'today',
+                dueDate: null,
+                tags: ['急ぎ', '開発']
             }
-            
-            const cardId = this.lastID;
-            
-            // Insert tags for this card
-            let tagCount = 0;
-            card.tags.forEach(tagName => {
-                db.run(insertTag, [cardId, tagName], (err) => {
-                    if (err) console.error('Error inserting tag:', err);
-                    tagCount++;
-                    if (tagCount === card.tags.length) {
-                        cardCount++;
-                        if (cardCount === sampleCards.length) {
-                            console.log('Sample data inserted successfully');
-                            callback();
+        ];
+
+        let cardCount = 0;
+        sampleCards.forEach((card, index) => {
+            db.run(insertCard, [card.title, card.description, card.column, card.dueDate], function(err) {
+                if (err) {
+                    console.error('Error inserting card:', err);
+                    return;
+                }
+                
+                const cardId = this.lastID;
+                
+                // Insert tags for this card
+                let tagCount = 0;
+                card.tags.forEach(tagName => {
+                    db.run(insertTag, [cardId, tagName], (err) => {
+                        if (err) console.error('Error inserting tag:', err);
+                        tagCount++;
+                        if (tagCount === card.tags.length) {
+                            cardCount++;
+                            if (cardCount === sampleCards.length) {
+                                console.log('Sample data inserted successfully');
+                                callback();
+                            }
                         }
-                    }
+                    });
                 });
             });
         });
