@@ -105,11 +105,11 @@ router.delete('/cards/:id', async (req, res) => {
     }
 });
 
-// GET /api/history - Get completed cards for history
+// GET /api/history - Get completed cards for history with search options
 router.get('/history', async (req, res) => {
     try {
-        const date = req.query.date || null;
-        const cards = await cardModel.getHistoryCards(date);
+        const { date, dateFrom, dateTo, search } = req.query;
+        const cards = await cardModel.getHistoryCards({ date, dateFrom, dateTo, search });
         res.json(cards);
     } catch (error) {
         console.error('Error fetching history:', error);

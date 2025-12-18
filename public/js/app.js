@@ -567,13 +567,26 @@ function closeModal() {
 }
 
 // History functions
-async function fetchHistory(date = null) {
+async function fetchHistory(searchParams = {}) {
     try {
         document.getElementById('history-loading').style.display = 'block';
         
         let url = '/api/history';
-        if (date) {
-            url += `?date=${date}`;
+        const params = new URLSearchParams();
+        
+        // Support old single date parameter for backward compatibility
+        if (typeof searchParams === 'string') {
+            params.append('date', searchParams);
+        } else {
+            // New detailed search parameters
+            if (searchParams.date) params.append('date', searchParams.date);
+            if (searchParams.dateFrom) params.append('dateFrom', searchParams.dateFrom);
+            if (searchParams.dateTo) params.append('dateTo', searchParams.dateTo);
+            if (searchParams.search) params.append('search', searchParams.search);
+        }
+        
+        if (params.toString()) {
+            url += `?${params.toString()}`;
         }
         
         const response = await fetch(url);
@@ -582,7 +595,7 @@ async function fetchHistory(date = null) {
         }
         
         const historyCards = await response.json();
-        displayHistory(historyCards);
+        displayHistory(historyCards, searchParams);
     } catch (error) {
         console.error('Error fetching history:', error);
         showError('履歴の読み込みに失敗しました');
@@ -591,11 +604,86 @@ async function fetchHistory(date = null) {
     }
 }
 
-function displayHistory(historyCards) {
+// New function for advanced history search
+async function searchHistory() {
+    const date = document.getElementById('history-date').value;
+    const dateFrom = document.getElementById('history-date-from').value;
+    const dateTo = document.getElementById('history-date-to').value;
+    const search = document.getElementById('history-search-text').value;
+    
+    // Validation for date range
+    if (dateFrom && dateTo && dateFrom > dateTo) {
+        showError('開始日は終了日より前の日付を選択してください');
+        return;
+    }
+    
+    const searchParams = {};
+    if (date) searchParams.date = date;
+    if (dateFrom) searchParams.dateFrom = dateFrom;
+    if (dateTo) searchParams.dateTo = dateTo;
+    if (search) searchParams.search = search;
+    
+    await fetchHistory(searchParams);
+}
+
+// Clear all search fields
+function clearHistorySearch() {
+    document.getElementById('history-date').value = '';
+    document.getElementById('history-date-from').value = '';
+    document.getElementById('history-date-to').value = '';
+    document.getElementById('history-search-text').value = '';
+    document.getElementById('search-results-info').style.display = 'none';
+    
+    // Fetch all history
+    fetchHistory();
+}
+
+function displayHistory(historyCards, searchParams = {}) {
     const historyList = document.getElementById('history-list');
+    const searchResultsInfo = document.getElementById('search-results-info');
+    const searchResultsCount = document.getElementById('search-results-count');
+    
+    // Show search results info
+    if (Object.keys(searchParams).length > 0) {
+        let searchDescription = [];
+        
+        if (searchParams.date) {
+            const date = new Date(searchParams.date);
+            searchDescription.push(`特定日: ${date.toLocaleDateString('ja-JP')}`);
+        }
+        
+        if (searchParams.dateFrom || searchParams.dateTo) {
+            let range = '期間: ';
+            if (searchParams.dateFrom && searchParams.dateTo) {
+                const fromDate = new Date(searchParams.dateFrom);
+                const toDate = new Date(searchParams.dateTo);
+                range += `${fromDate.toLocaleDateString('ja-JP')} 〜 ${toDate.toLocaleDateString('ja-JP')}`;
+            } else if (searchParams.dateFrom) {
+                const fromDate = new Date(searchParams.dateFrom);
+                range += `${fromDate.toLocaleDateString('ja-JP')} 以降`;
+            } else if (searchParams.dateTo) {
+                const toDate = new Date(searchParams.dateTo);
+                range += `${toDate.toLocaleDateString('ja-JP')} 以前`;
+            }
+            searchDescription.push(range);
+        }
+        
+        if (searchParams.search) {
+            searchDescription.push(`キーワード: "${searchParams.search}"`);
+        }
+        
+        searchResultsCount.textContent = `${historyCards.length}件の結果が見つかりました (${searchDescription.join(', ')})`;
+        searchResultsInfo.style.display = 'block';
+    } else {
+        searchResultsInfo.style.display = 'none';
+    }
     
     if (historyCards.length === 0) {
-        historyList.innerHTML = '<div class="history-empty">完了したカードがありません</div>';
+        if (Object.keys(searchParams).length > 0) {
+            historyList.innerHTML = '<div class="history-empty">検索条件に一致するカードが見つかりませんでした</div>';
+        } else {
+            historyList.innerHTML = '<div class="history-empty">完了したカードがありません</div>';
+        }
         return;
     }
     
@@ -697,15 +785,27 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('history-close').addEventListener('click', closeHistoryModal);
     document.getElementById('history-cancel-btn').addEventListener('click', closeHistoryModal);
     
-    // History date filter
-    document.getElementById('history-date').addEventListener('change', (e) => {
-        fetchHistory(e.target.value);
+    // History search functionality
+    document.getElementById('search-history-btn').addEventListener('click', searchHistory);
+    document.getElementById('clear-search-btn').addEventListener('click', clearHistorySearch);
+    
+    // Set today date for history search
+    document.getElementById('history-set-today').addEventListener('click', () => {
+        setTodayDate('history-date');
     });
     
-    document.getElementById('clear-date-btn').addEventListener('click', () => {
-        document.getElementById('history-date').value = '';
-        fetchHistory();
+    // Enter key support for search fields
+    document.getElementById('history-search-text').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            searchHistory();
+        }
     });
+    
+    // Legacy support for the old date change handler (if clear-date-btn still exists)
+    const clearDateBtn = document.getElementById('clear-date-btn');
+    if (clearDateBtn) {
+        clearDateBtn.addEventListener('click', clearHistorySearch);
+    }
     
     // Close history modal when clicking outside
     document.getElementById('history-modal').addEventListener('click', (e) => {

@@ -216,9 +216,11 @@ class Card {
         });
     }
 
-    // Get completed cards for history
-    async getHistoryCards(date = null) {
+    // Get completed cards for history with search options
+    async getHistoryCards(searchOptions = {}) {
         return new Promise((resolve, reject) => {
+            const { date, dateFrom, dateTo, search } = searchOptions;
+            
             let query = `
                 SELECT 
                     c.*,
@@ -229,9 +231,30 @@ class Card {
             `;
             
             let params = [];
+            
+            // Specific date search
             if (date) {
                 query += ` AND date(c.completed_at) = date(?)`;
                 params.push(date);
+            }
+            
+            // Date range search
+            if (dateFrom && dateTo) {
+                query += ` AND date(c.completed_at) BETWEEN date(?) AND date(?)`;
+                params.push(dateFrom, dateTo);
+            } else if (dateFrom) {
+                query += ` AND date(c.completed_at) >= date(?)`;
+                params.push(dateFrom);
+            } else if (dateTo) {
+                query += ` AND date(c.completed_at) <= date(?)`;
+                params.push(dateTo);
+            }
+            
+            // Text search in title and description
+            if (search && search.trim()) {
+                query += ` AND (c.title LIKE ? OR c.description LIKE ?)`;
+                const searchTerm = `%${search.trim()}%`;
+                params.push(searchTerm, searchTerm);
             }
             
             query += ` GROUP BY c.id ORDER BY c.completed_at DESC`;

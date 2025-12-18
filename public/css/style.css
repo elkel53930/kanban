@@ -917,3 +917,126 @@ form {
         flex-direction: column;
     }
 }
+
+/* History Search Styles */
+.search-section {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.search-section h4 {
+    margin-bottom: 16px;
+    color: #495057;
+    font-size: 1.1em;
+}
+
+.search-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.search-field {
+    flex: 1;
+    min-width: 200px;
+}
+
+.search-field label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9em;
+}
+
+.search-field input[type="text"],
+.search-field input[type="date"] {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.search-field input[type="text"]:focus,
+.search-field input[type="date"]:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.search-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+.search-results-info {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 16px;
+}
+
+.search-results-info p {
+    margin: 0;
+    color: #1565c0;
+    font-weight: 500;
+}
+
+/* Button styling for today button in search */
+.date-input-group .btn-today {
+    margin-left: 8px;
+    padding: 6px 10px;
+    font-size: 0.8em;
+    background: #007bff;
+    color: white;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.date-input-group .btn-today:hover {
+    background: #0056b3;
+    border-color: #0056b3;
+}
+
+.date-input-group {
+    display: flex;
+    align-items: center;
+}
+
+/* Mobile responsive for search section */
+@media (max-width: 768px) {
+    .search-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .search-field {
+        min-width: auto;
+    }
+    
+    .search-actions {
+        justify-content: center;
+    }
+    
+    .date-input-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    
+    .date-input-group .btn-today {
+        margin-left: 0;
+        align-self: flex-start;
+        width: fit-content;
+    }
+}

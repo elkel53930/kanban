@@ -178,9 +178,39 @@
             </div>
             <div class="modal-body">
                 <div class="history-controls">
-                    <label for="history-date">日付で絞り込み:</label>
-                    <input type="date" id="history-date" />
-                    <button class="btn btn-sm btn-secondary" id="clear-date-btn">全期間表示</button>
+                    <div class="search-section">
+                        <h4>🔍 検索オプション</h4>
+                        <div class="search-row">
+                            <div class="search-field">
+                                <label for="history-date">完了日で検索:</label>
+                                <div class="date-input-group">
+                                    <input type="date" id="history-date" />
+                                    <button type="button" class="btn-today" id="history-set-today" title="今日の日付を設定">今日</button>
+                                </div>
+                            </div>
+                            <div class="search-field">
+                                <label for="history-search-text">タイトル検索:</label>
+                                <input type="text" id="history-search-text" placeholder="カードタイトルで検索..." />
+                            </div>
+                        </div>
+                        <div class="search-row">
+                            <div class="search-field">
+                                <label for="history-date-from">完了日の範囲検索 - 開始:</label>
+                                <input type="date" id="history-date-from" />
+                            </div>
+                            <div class="search-field">
+                                <label for="history-date-to">完了日の範囲検索 - 終了:</label>
+                                <input type="date" id="history-date-to" />
+                            </div>
+                        </div>
+                        <div class="search-actions">
+                            <button class="btn btn-primary" id="search-history-btn">🔍 検索</button>
+                            <button class="btn btn-sm btn-secondary" id="clear-search-btn">クリア</button>
+                        </div>
+                    </div>
+                    <div class="search-results-info" id="search-results-info" style="display: none;">
+                        <p id="search-results-count"></p>
+                    </div>
                 </div>
                 
                 <div id="history-content">
