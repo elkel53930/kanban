@@ -5,7 +5,14 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "pm2:start": "npx pm2 start ecosystem.config.js",
+    "pm2:stop": "npx pm2 stop kanban-app",
+    "pm2:restart": "npx pm2 restart kanban-app",
+    "pm2:delete": "npx pm2 delete kanban-app",
+    "pm2:status": "npx pm2 status",
+    "pm2:logs": "npx pm2 logs kanban-app",
+    "pm2:monit": "npx pm2 monit"
   },
   "keywords": [
     "kanban",
@@ -15,13 +22,14 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "sqlite3": "^5.1.6",
     "body-parser": "^1.20.2",
+    "express": "^4.18.2",
+    "marked": "^9.1.6",
     "path": "^0.12.7",
-    "marked": "^9.1.6"
+    "sqlite3": "^5.1.6"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.2",
+    "pm2": "^6.0.14"
   }
 }

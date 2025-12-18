@@ -105,6 +105,7 @@ npm start
 - **Node.js** - JavaScript実行環境
 - **Express** - Webフレームワーク
 - **SQLite** - 軽量データベース
+- **PM2** - プロセス管理・バックグラウンド実行
 
 ### フロントエンド
 - **HTML5/CSS3** - マークアップとスタイリング
@@ -120,25 +121,30 @@ npm start
 
 ```
 kanban/
-├── 📄 server.js           # メインサーバーファイル
-├── 📄 package.json        # Node.js設定・依存関係
-├── 📁 database/           # データベース関連
-│   ├── schema.sql         # テーブル定義
-│   ├── init.js           # DB初期化スクリプト
-│   └── kanban.db         # SQLiteデータベース（自動生成）
-├── 📁 models/            # データモデル
-│   ├── Card.js           # カードモデル
-│   └── Comment.js        # コメントモデル
-├── 📁 routes/            # APIルート
-│   └── api.js            # RESTful API エンドポイント
-├── 📁 views/             # HTMLテンプレート
-│   └── index.html        # メインページ
-├── 📁 public/            # 静的ファイル
-│   ├── css/style.css     # スタイルシート
-│   └── js/app.js         # フロントエンドJavaScript
-├── 📄 setup.sh           # Ubuntuセットアップスクリプト
-├── 📄 setup.bat          # Windowsセットアップスクリプト
-└── 📄 requirements.md    # 要求仕様書
+├── 📄 server.js            # メインサーバーファイル
+├── 📄 package.json         # Node.js設定・依存関係
+├── 📄 ecosystem.config.js  # PM2プロセス管理設定
+├── 📁 database/            # データベース関連
+│   ├── schema.sql          # テーブル定義
+│   ├── init.js            # DB初期化スクリプト
+│   └── kanban.db          # SQLiteデータベース（自動生成）
+├── 📁 models/             # データモデル
+│   ├── Card.js            # カードモデル
+│   └── Comment.js         # コメントモデル
+├── 📁 routes/             # APIルート
+│   └── api.js             # RESTful API エンドポイント
+├── 📁 views/              # HTMLテンプレート
+│   └── index.html         # メインページ
+├── 📁 public/             # 静的ファイル
+│   ├── css/style.css      # スタイルシート
+│   └── js/app.js          # フロントエンドJavaScript
+├── 📁 logs/               # PM2ログファイル（自動生成）
+│   ├── out-0.log          # 標準出力ログ
+│   ├── err-0.log          # エラーログ
+│   └── combined-0.log     # 結合ログ
+├── 📄 setup.sh            # Ubuntuセットアップスクリプト
+├── 📄 setup.bat           # Windowsセットアップスクリプト
+└── 📄 requirements.md     # 要求仕様書
 ```
 
 ## 🛡️ セキュリティ
@@ -193,6 +199,77 @@ nodemon server.js
 
 # または
 npm run dev  # package.jsonにスクリプト設定済み
+```
+
+## 🚀 バックグラウンド実行
+
+アプリケーションをバックグラウンドで実行することで、ターミナルを閉じてもブラウザからアクセスし続けることができます。
+
+### PM2を使用した実行管理
+
+PM2（Process Manager 2）を使用してプロセス管理を行います。
+
+#### 基本コマンド
+```bash
+# バックグラウンドで起動
+npm run pm2:start
+
+# 実行状態を確認
+npm run pm2:status
+
+# アプリケーションを停止
+npm run pm2:stop
+
+# アプリケーションを再起動
+npm run pm2:restart
+
+# ログを確認（リアルタイム）
+npm run pm2:logs
+
+# プロセス監視画面を表示
+npm run pm2:monit
+
+# プロセスを完全削除
+npm run pm2:delete
+```
+
+#### 使用例
+```bash
+# 1. バックグラウンドで起動
+npm run pm2:start
+
+# 2. ブラウザでアクセス
+# http://localhost:3000
+
+# 3. ターミナルを閉じても動作継続
+
+# 4. 必要に応じて状態確認
+npm run pm2:status
+
+# 5. 停止する場合
+npm run pm2:stop
+```
+
+#### PM2設定ファイル
+- **ecosystem.config.js**: PM2の設定ファイル
+- **logs/**: PM2が出力するログファイルの保存先
+  - `out-0.log`: 標準出力ログ
+  - `err-0.log`: エラーログ  
+  - `combined-0.log`: 結合ログ
+
+### システム起動時の自動実行設定
+
+システム再起動時にも自動でアプリケーションを開始したい場合：
+
+```bash
+# PM2の起動スクリプトを生成
+npx pm2 startup
+
+# 現在のプロセスリストを保存
+npx pm2 save
+
+# 設定を削除する場合
+npx pm2 unstartup systemd
 ```
 
 ### カスタマイズポイント
